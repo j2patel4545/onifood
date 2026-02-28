@@ -1,79 +1,100 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs'; 
-import jwt from 'jsonwebtoken'; // ✅ Import JWT
-import User from '../Models/UserModule.js';
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import User from "../Models/UserModule.js";
 
-const SECRET_KEY = "your_secret_key"; // 🔹 Use environment variables in production
+const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
-// ✅ User Registration
-export const UserRegister = async (req, res) => {
-    const { email, mobileNumber,Address,Username } = req.body;
-
+// ✅ 1. User Registration
+export const UserRegister = async (req, res, next) => {
     try {
-        // ✅ Check if user already exists
+        const { Username, email, password, mobileNumber, Address, role } = req.body;
+
+        if (!Username || !email || !password || !Address) {
+            return res.status(400).json({ success: false, message: "Missing required fields." });
+        }
+
         const userExist = await User.findOne({ email });
         if (userExist) {
-            return res.status(400).json({ message: "User Already Exists..!" });
+            return res.status(400).json({ success: false, message: "User already exists. Please Login." });
         }
 
-        // ✅ Hash the mobileNumber before storing
         const salt = await bcrypt.genSalt(10);
-        const hashedmobileNumber = await bcrypt.hash(mobileNumber, salt);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
-        // ✅ Save new user with hashed mobileNumber
-        const newUser = new User({Username,Address, email, mobileNumber: hashedmobileNumber });
+        const newUser = new User({
+            Username,
+            email,
+            password: hashedPassword,
+            mobileNumber,
+            Address,
+            role: role || 'user'
+        });
+
         await newUser.save();
 
-        return res.status(200).json({ message: "User Registered Successfully!" });
-
+        res.status(201).json({ success: true, message: "User Registered Successfully!" });
     } catch (error) {
-        return res.status(500).json({ message: "Server Error, Registration Failed!" });
+        next(error);
     }
 };
 
-// ✅ User Login
-export const UserLogin = async (req, res) => {
-    const { email, mobileNumber } = req.body;
-
+// ✅ 2. User Login
+export const UserLogin = async (req, res, next) => {
     try {
-        // ✅ Check if user exists
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ success: false, message: "Email and password are required." });
+        }
+
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ message: "User Not Exist..!" });
+            return res.status(404).json({ success: false, message: "User not found." });
         }
 
-        // ✅ Compare mobileNumber with hashed mobileNumber
-        const isMatch = await bcrypt.compare(mobileNumber, user.mobileNumber);
+        if (!user.password) {
+            return res.status(400).json({ success: false, message: "User account is missing a password. Please register again or contact support." });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({ message: "Invalid Credentials..!" });
+            return res.status(401).json({ success: false, message: "Invalid credentials." });
         }
 
-        // ✅ Generate JWT token
         const token = jwt.sign(
-            { id: user._id, email: user.email },
+            { id: user._id, email: user.email, role: user.role },
             SECRET_KEY,
-            { expiresIn: "1h" } // 🔹 Token expires in 1 hour
+            { expiresIn: "1h" }
         );
 
-        return res.status(200).json({ message: "Login Successful!", token , student:user });
-
+        res.status(200).json({
+            success: true,
+            message: "Login Successful!",
+            token,
+            user: {
+                id: user._id,
+                Username: user.Username,
+                email: user.email,
+                role: user.role
+            }
+        });
     } catch (error) {
-        return res.status(500).json({ message: "Server ERROR LOGIN FAILED..! " });
+        next(error);
     }
 };
 
-export const UserProfile = async (req, res) => {
-    const { id } = req.params; // ✅ Extract user ID
-
+// ✅ 3. User Profile
+export const UserProfile = async (req, res, next) => {
     try {
-        const user = await User.findById(id); // ✅ Correct findById usage
+        const { id } = req.params;
 
+        const user = await User.findById(id).select("-password -__v");
         if (!user) {
-            return res.status(404).json({ message: "User Not Found!" });
+            return res.status(404).json({ success: false, message: "User Profile not found." });
         }
 
-        return res.status(200).json({ message: "User Profile", user }); // ✅ Correct JSON response
+        res.status(200).json({ success: true, message: "User Profile Data", user });
     } catch (error) {
-        return res.status(500).json({ message: "Server Error, User NOT Found!" });
+        next(error);
     }
 };
