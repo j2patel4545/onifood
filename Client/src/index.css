@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+@layer base {
+    body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        color: var(--color-gray-800);
+        background-color: var(--color-gray-50);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+}

@@ -1,9 +1,12 @@
 import React, { useEffect, useContext, useState } from "react";
-import axios from 'axios'
+import axios from 'axios';
 import { CiSearch } from "react-icons/ci";
 import { LuArrowDownUp } from "react-icons/lu";
 import Food from "../../Context/Fcontext";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { motion } from "framer-motion";
+
 import img1 from "./ast/one.jpg";
 import img2 from "./ast/Two.jpg";
 import img3 from "./ast/Three.jpg";
@@ -30,60 +33,23 @@ function Home() {
     { name: "Paneer Pizza", image: img9 },
     { name: "Platter", image: img10 },
     { name: "Cheese Cake", image: img11 },
-    { name: "Berries Cake", image: img12 },
-    { name: "Paneer Pizza", image: img9 },
-    { name: "Platter", image: img10 },
-    { name: "Cheese Cake", image: img11 },
-    { name: "Berries Cake", image: img12 },
+    { name: "Berries Cake", image: img12 }
   ];
 
   const { cola, setShoppy } = useContext(Food);
   const navigate = useNavigate();
-  const [isExpanded, setIsExpanded] = useState(false);
   const [products, setProducts] = useState([]);
-console.log(products);
+  const [loading, setLoading] = useState(true);
 
-
+  // Fallback initial state matching previous logic
   const [foodie, setFoodie] = useState([
     {
       name: "Amul",
-      image: "https://images.pexels.com/photos/14509267/pexels-photo-14509267.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      image: "https://images.pexels.com/photos/14509267/pexels-photo-14509267.jpeg",
       qnt: 1,
-      price:90
-    },
-    {
-      name: "Samosa",
-      image: "https://images.pexels.com/photos/4449068/pexels-photo-4449068.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-      qnt: 1,
-      price:90
-    },
-    {
-      name: "Vadapav",
-      image: "https://media.istockphoto.com/id/1198087105/photo/vadapav.jpg?s=2048x2048&w=is&k=20&c=W3VZiwLywFM6qI7W1focRqj5Z-YbF-oXmucNf8VikBQ=",
-      qnt: 1,
-      price:90
-    },
-    {
-      name: "Coffee",
-      image: "https://images.pexels.com/photos/8732927/pexels-photo-8732927.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-      qnt: 1,
-      price:90
-    },
-    {
-      name: "Aloo Puri",
-      image: "https://www.shutterstock.com/image-photo/aloo-puri-recipe-street-food-260nw-2243039581.jpg",
-      qnt: 1,
-      price:90
-    },
-    {
-      name: "Jalebi",
-      image: "https://images.pexels.com/photos/8887054/pexels-photo-8887054.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-      qnt: 1,
-      price:90
-    },
+      price: 90
+    }
   ]);
-
-  
 
   useEffect(() => {
     if (!cola) {
@@ -91,35 +57,34 @@ console.log(products);
     }
   }, [cola, navigate]);
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get("http://localhost:8799/product/prd");
+        if (response.data.length > 0) {
+          setFoodie(response.data);
+        }
+      } catch (error) {
+        toast.error("Failed to load products from server");
+        console.log("Fetch Error", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
   if (!cola) {
-    return <h2>Please login first</h2>;
+    return <div className="h-screen flex items-center justify-center font-semibold text-lg">Please login to continue...</div>;
   }
 
   const addToCart = (item) => {
     setShoppy((prev) => {
       return Array.isArray(prev) ? [...prev, item] : [item];
-     
-      
     });
-    alert(`Added to card : ${item.name} × ${item.qnt} `)
+    // Replaced standard alert with elegant toast
+    toast.success(`Added ${item.name} to cart!`);
   };
-  
-   useEffect(()=>{
-    const fetchProducts = async () => {
-      try {
-       const response = await axios.get("http://localhost:8799/product/prd");
-         console.log(response.data);
-         setFoodie(response.data)
-         
-      } catch (error) {
-       console.log("Fatch Error",error);
-       
-      }
-     };
-     fetchProducts();
-   },[])
-  
-
 
   const updateQuantity = (temp, action) => {
     setFoodie((prevFoodie) =>
@@ -132,113 +97,149 @@ console.log(products);
   };
 
   return (
-  <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
+      {/* HERO SECTION - Redesigned */}
+      <motion.section
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-red-600 to-orange-500 text-white p-10 sm:p-16 shadow-2xl mb-12"
+      >
+        <div className="relative z-10 max-w-2xl">
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
+            Craving Something <span className="text-yellow-300 decoration-wavy underline decoration-4 underline-offset-8">Delicious?</span>
+          </h1>
+          <p className="text-lg sm:text-xl text-white/90 mb-8 font-medium">
+            Get the best food from top restaurants delivered blazing fast to your doorstep.
+          </p>
 
-    {/* HERO SECTION */}
-    <section className="bg-gradient-to-r from-red-500 to-pink-500 text-white py-12 px-6 sm:px-16">
-      <h1 className="text-3xl sm:text-4xl font-bold mb-4">
-        Delicious food delivered to your door 🍕
-      </h1>
-      <p className="text-white/90 mb-6">
-        Discover the best dishes around you
-      </p>
-
-      <div className="relative max-w-xl bg-">
-        <input
-          type="search"
-          placeholder="Search food..."
-          className="w-full h-12 rounded-full pl-12 pr-4 bg-amber-50/50 text-black focus:outline-none shadow-lg"
-        />
-        <CiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl text-gray-500" />
-      </div>
-    </section>
-
-    {/* CATEGORY SECTION */}
-    <section className="py-10 px-4 sm:px-16">
-      <h2 className="text-2xl font-bold mb-6">Explore Categories</h2>
-
-      <div className="grid grid-cols-4 sm:grid-cols-8 gap-6">
-        {Product.map((item, index) => (
-          <div
-            key={index}
-            className="flex flex-col items-center group cursor-pointer"
-          >
-            <div className="h-24 w-24 rounded-full overflow-hidden shadow-md group-hover:scale-110 transition duration-300">
-              <img
-                src={item.image}
-                alt={item.name}
-                className="h-full w-full object-cover"
-              />
-            </div>
-            <p className="mt-2 text-sm font-medium group-hover:text-red-500 transition">
-              {item.name}
-            </p>
+          <div className="relative max-w-lg">
+            <input
+              type="search"
+              placeholder="Search dishes, restaurants..."
+              className="w-full h-14 rounded-full pl-14 pr-6 bg-white/95 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-orange-300 shadow-xl text-lg transition-all"
+            />
+            <CiSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-3xl text-gray-400" />
+            <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-red-700 transition shadow">
+              Search
+            </button>
           </div>
-        ))}
-      </div>
-    </section>
+        </div>
 
-    {/* PRODUCTS SECTION */}
-    <section className="px-4 sm:px-16 pb-20">
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-2xl font-bold">Restaurants Near You</h2>
-        <button className="flex items-center gap-2 text-sm bg-white px-4 py-2 rounded-lg shadow">
-          <LuArrowDownUp /> Sort
-        </button>
-      </div>
+        {/* Decorative Blur Orbs */}
+        <div className="absolute -top-20 -right-20 w-72 h-72 bg-yellow-400/30 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-20 right-40 w-80 h-80 bg-orange-600/40 rounded-full blur-3xl"></div>
+      </motion.section>
 
-      <div className="grid sm:grid-cols-3 md:grid-cols-4 gap-8">
-        {foodie.map((item, index) => (
-          <div
-            key={index}
-            className="bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden group"
-          >
-            <div className="relative h-48 overflow-hidden">
-              <img
-                src={`http://localhost:8799${item.image}`}
-                alt={item.name}
-                className="h-full w-full object-cover group-hover:scale-110 transition duration-500"
-              />
-              <div className="absolute top-3 right-3 bg-white px-3 py-1 rounded-full text-sm shadow">
-                ₹ {item.price}
+      {/* CATEGORY SECTION */}
+      <section className="mb-16">
+        <div className="flex justify-between items-end mb-8">
+          <h2 className="text-3xl font-bold text-gray-800 tracking-tight">Top Categories</h2>
+        </div>
+
+        <div className="flex overflow-x-auto pb-6 gap-6 hide-scrollbar scroll-smooth">
+          {Product.map((item, index) => (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.05 }}
+              key={index}
+              className="flex flex-col items-center flex-shrink-0 group cursor-pointer w-28"
+            >
+              <div className="h-24 w-24 rounded-full overflow-hidden shadow-lg border-4 border-white group-hover:border-red-500 group-hover:shadow-red-200 transition-all duration-300">
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="h-full w-full object-cover group-hover:scale-110 transition duration-500"
+                />
               </div>
-            </div>
+              <p className="mt-4 text-sm font-semibold text-gray-700 group-hover:text-red-500 transition line-clamp-1 text-center">
+                {item.name}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
 
-            <div className="p-5 space-y-4">
-              <h3 className="text-lg font-semibold">{item.name}</h3>
+      {/* PRODUCTS SECTION */}
+      <section className="pb-20">
+        <div className="flex justify-between items-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-800 tracking-tight">Trending Near You</h2>
+          <button className="flex items-center gap-2 text-sm font-medium bg-white px-5 py-2.5 rounded-full border border-gray-200 shadow-sm hover:shadow hover:bg-gray-50 transition">
+            <LuArrowDownUp /> Sort By
+          </button>
+        </div>
 
-              {/* Quantity Selector */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center border rounded-lg overflow-hidden">
-                  <button
-                    className="px-3 py-1 hover:bg-gray-100"
-                    onClick={() => updateQuantity(item, "decrease")}
-                  >
-                    -
-                  </button>
-                  <span className="px-4">{item.qnt}</span>
-                  <button
-                    className="px-3 py-1 hover:bg-gray-100"
-                    onClick={() => updateQuantity(item, "increase")}
-                  >
-                    +
-                  </button>
+        {loading ? (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="animate-pulse bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
+                <div className="bg-gray-200 h-48 rounded-2xl mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {foodie.map((item, index) => (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                key={index}
+                className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full"
+              >
+                <div className="relative h-56 rounded-2xl overflow-hidden mb-5">
+                  <img
+                    src={item.image.startsWith('http') ? item.image : `http://localhost:8799${item.image}`}
+                    alt={item.name}
+                    className="h-full w-full object-cover group-hover:scale-105 transition duration-500"
+                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=800&auto=format&fit=crop'; }}
+                  />
+                  <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-4 py-1.5 rounded-full font-bold text-gray-800 shadow-lg">
+                    ₹{item.price}
+                  </div>
                 </div>
 
-                <button
-                  onClick={() => addToCart(item)}
-                  className="bg-black text-white px-4 py-2 rounded-lg hover:bg-red-500 transition duration-300"
-                >
-                  Add
-                </button>
-              </div>
-            </div>
+                <div className="flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-800 mb-1">{item.name}</h3>
+                    <p className="text-sm text-gray-500 mb-4 line-clamp-2">Authentic taste made with fresh ingredients</p>
+                  </div>
+
+                  {/* Interactivity Area */}
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <div className="flex items-center bg-gray-50 rounded-full p-1 border border-gray-200">
+                      <button
+                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white hover:shadow-sm text-gray-600 font-bold transition"
+                        onClick={() => updateQuantity(item, "decrease")}
+                      >
+                        -
+                      </button>
+                      <span className="w-8 text-center font-semibold text-gray-800">{item.qnt}</span>
+                      <button
+                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white hover:shadow-sm text-gray-600 font-bold transition"
+                        onClick={() => updateQuantity(item, "increase")}
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={() => addToCart(item)}
+                      className="bg-gray-900 text-white px-6 py-2.5 rounded-full font-semibold hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/30 transition-all active:scale-95"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
-        ))}
-      </div>
-    </section>
-  </div>
-);
+        )}
+      </section>
+    </div>
+  );
 }
 
 export default Home;

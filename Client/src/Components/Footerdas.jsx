@@ -17,7 +17,7 @@ export default function Footerdas() {
 
         {/* Brand */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">FoodExpress</h2>
+          <h2 className="text-2xl font-bold text-white">OniFood</h2>
           <p className="text-sm leading-relaxed">
             Order delicious food from your favourite restaurants near you.
             Fast delivery, best offers and quality service guaranteed.
@@ -31,7 +31,7 @@ export default function Footerdas() {
               <Phone size={16} /> +91 98765 43210
             </div>
             <div className="flex items-center gap-2">
-              <Mail size={16} /> support@foodexpress.com
+              <Mail size={16} /> support@onifood.com
             </div>
           </div>
         </div>
@@ -99,7 +99,7 @@ export default function Footerdas() {
 
       {/* Bottom Bar */}
       <div className="border-t border-zinc-800 py-4 text-center text-sm text-zinc-400">
-        © {new Date().getFullYear()} FoodExpress. All rights reserved.
+        © {new Date().getFullYear()} OniFood. All rights reserved.
       </div>
     </footer>
   );
