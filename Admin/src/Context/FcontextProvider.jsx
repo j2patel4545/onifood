@@ -2,21 +2,39 @@ import React, { useState, useEffect } from "react";
 import Food from "./Fcontext";
 
 function FcontextProvider({ children }) {
-  const storedUser = localStorage.getItem("user");
-  const storedchristi = localStorage.getItem("christi");
+  // Lazy initialization of state from localStorage
+  const [cola, setCola] = useState(() => {
+    const saved = localStorage.getItem("user");
+    return saved ? JSON.parse(saved) : null;
+  });
 
-  const [cola, setCola] = useState(storedUser ? JSON.parse(storedUser) : null);
-  const [shoppy,setShoppy]=  useState(storedchristi ? JSON.parse(storedchristi) : null);
- 
-    localStorage.setItem("user", JSON.stringify(cola));
-    localStorage.setItem("christi",JSON.stringify(shoppy))
-    console.log(storedchristi);
-    
- 
+  const [shoppy, setShoppy] = useState(() => {
+    const saved = localStorage.getItem("christi"); // Keeping key for compatibility
+    return saved ? JSON.parse(saved) : [];
+  });
 
-  return <Food.Provider value={{ cola, setCola , setShoppy ,shoppy }}>
-    {children}
-    </Food.Provider>;
+  // Sync state to localStorage when it changes
+  useEffect(() => {
+    if (cola) {
+      localStorage.setItem("user", JSON.stringify(cola));
+    } else {
+      localStorage.removeItem("user");
+    }
+  }, [cola]);
+
+  useEffect(() => {
+    if (shoppy && shoppy.length > 0) {
+      localStorage.setItem("christi", JSON.stringify(shoppy));
+    } else if (shoppy && shoppy.length === 0) {
+      localStorage.removeItem("christi");
+    }
+  }, [shoppy]);
+
+  return (
+    <Food.Provider value={{ cola, setCola, shoppy, setShoppy }}>
+      {children}
+    </Food.Provider>
+  );
 }
 
 export default FcontextProvider;
